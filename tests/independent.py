@@ -131,7 +131,7 @@ def coupled_queries(case):
            'initial_cartesian':np.array([[.003,-.001,.002],[-.001,.002,.001]]),
            'final_cartesian':np.array([[-.002,.001,.003],[.001,.002,-.001]]),
            'constant':.0005,'linear':np.r_[vector,-vector],'quadratic':pair_laplacian(tensor),
-           'temperature':20.,'width':.0008,'energies':np.linspace(-.004,.003,len(case['energies']))}
+           'temperature':.8,'width':.0008,'energies':np.linspace(-.004,.003,len(case['energies']))}
     return [query,{'masses':np.array([.4,.15])}]
 
 

@@ -30,4 +30,8 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tests \
   --junitxml=/logs/verifier/junit.xml
 status=$?
 set -e
+if [ ! -s /logs/verifier/junit.xml ]; then
+    printf 'INCOMPLETE: pytest did not produce a nonempty JUnit report\n' > /logs/verifier/status.txt
+    exit 1
+fi
 python -I /tests/grade.py finish "$status"

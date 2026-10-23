@@ -1,7 +1,7 @@
 schema_version = "1.3"
 artifacts = ["/app/src"]
 [task]
-version = "1.0.0"
+version = "1.0.1"
 name = "local/10-defect-multimode-capture"
 description = "Native multimode defect quantum capture spectrum and Cartesian/isotope response"
 authors = [{ name = "wyw" }]

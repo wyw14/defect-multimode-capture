@@ -8,6 +8,7 @@ from candidate import call
 from independent import (coupled_case,explicit_quantum,isotope_case,closed_isotropic,arguments,
                          normal_coordinates,pair_laplacian,coupled_queries,finite_quantum_response,
                          perturb,thermal_extreme_case,positive_extreme_state_sum)
+from dense_independent import make_case as dense_case, convolved_kernel, queries as dense_queries, shifted_case
 
 
 class DeferredResult:
@@ -21,10 +22,52 @@ class DeferredResult:
         return self.value[key]
 
 
-@pytest.fixture(scope='module')
-def coupled():
-    case=coupled_case();expected=explicit_quantum(case,10)
+def independent_expectation(case):
+    if 'intrinsic_blocks' in case:
+        expected=convolved_kernel(case,12)
+        assert abs(expected['probability_mass']-1)<1e-8, 'Complete block state-sum normalization'
+        return expected
+    return explicit_quantum(case,10)
+
+
+@pytest.fixture(scope='module',params=['three_mode','dense_fifteen'])
+def coupled(request):
+    case={'three_mode':coupled_case,'dense_fifteen':dense_case}[request.param]()
+    expected=independent_expectation(case)
     return case,expected,DeferredResult(case)
+
+
+@pytest.fixture(params=['three_mode','dense_fifteen'])
+def quadratic(request):
+    case={'three_mode':coupled_case,'dense_fifteen':dense_case}[request.param]()
+    case['coupling']={'constant':-.003,'linear':.5*case['coupling']['linear'],'quadratic':3*case['coupling']['quadratic']}
+    if 'intrinsic_blocks' in case:
+        case['scales'].update(linear=.5,quadratic=3.)
+    return case,independent_expectation(case)
+
+
+@pytest.fixture(params=['three_mode','dense_fifteen'])
+def noncommuting(request):
+    case={'three_mode':coupled_case,'dense_fifteen':dense_case}[request.param]()
+    if request.param=='three_mode':
+        rotation=linalg.expm(np.array([[0.,-.8,.3],[.8,0.,-.6],[-.3,.6,0.]]))
+        case['kf']=pair_laplacian(rotation@np.diag([7.5,13.,20.])@rotation.T)
+    return case,independent_expectation(case)
+
+
+@pytest.fixture(params=['three_mode','dense_fifteen'])
+def physical_response(request):
+    case={'three_mode':coupled_case,'dense_fifteen':dense_case}[request.param]()
+    if request.param=='three_mode':
+        case['queries']=coupled_queries(case)
+        expected=np.array([finite_quantum_response(case,q,cut=10) for q in case['queries']])
+    else:
+        case['queries']=dense_queries(case);step=2e-5
+        expected=np.array([(convolved_kernel(shifted_case(case,q,step),12)['kernel']-convolved_kernel(shifted_case(case,q,-step),12)['kernel'])/(2*step) for q in case['queries']])
+    for direction in case['queries']:
+        for key,value in direction.items():
+            assert np.max(np.abs(value))<=1, 'Direction outside public component bound: '+key
+    return case,expected
 
 
 def test_coupled_quantum_state_spectrum(coupled):
@@ -42,17 +85,15 @@ def test_mode_quanta_partition_and_zero_point(coupled):
     np.testing.assert_allclose([actual['log_Z_initial'],actual['log_Z_final']],[expected['log_Z_initial'],expected['log_Z_final']],atol=1e-7,rtol=3e-6,err_msg='complete partition functions with zero-point energies')
 
 
-def test_coordinate_dependent_quadratic_coupling():
+def test_coordinate_dependent_quadratic_coupling(quadratic):
     """"电子跃迁耦合为 Hermitian 的实坐标乘法算符 W(x)=w0+g^T x+(1/2)x^T B x。" Linear/quadratic amplitudes and their interference are not separate rates."""
-    case=coupled_case();case['coupling']={'constant':-.003,'linear':.5*case['coupling']['linear'],'quadratic':3*case['coupling']['quadratic']}
-    expected=explicit_quantum(case,10);args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
+    case,expected=quadratic;args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
     np.testing.assert_allclose(actual['kernel'],expected['kernel'],atol=5e-8,rtol=5e-6,err_msg='quadratic non-Condon operator and coherent cross terms')
 
 
-def test_noncommuting_force_surfaces():
+def test_noncommuting_force_surfaces(noncommuting):
     """"初、末态一般不能用同一套独立正常模式同时对角化。" A rotated final force surface changes multimode wavefunction overlaps."""
-    case=coupled_case();rotation=linalg.expm(np.array([[0.,-.8,.3],[.8,0.,-.6],[-.3,.6,0.]]));case['kf']=pair_laplacian(rotation@np.diag([7.5,13.,20.])@rotation.T)
-    expected=explicit_quantum(case,10);p=normal_coordinates(case);args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
+    case,expected=noncommuting;p=normal_coordinates(case);args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
     assert np.max(np.abs(p['rotation']-np.diag(np.diag(p['rotation']))))>.1, 'Fixture must mix internal normal modes'
     np.testing.assert_allclose(actual['kernel'],expected['kernel'],atol=5e-8,rtol=5e-6,err_msg='noncommuting initial/final phonon surfaces')
 
@@ -71,21 +112,20 @@ def test_nonuniform_isotope_mass_metric():
     np.testing.assert_allclose(actual['omega_initial'],expected['omega_initial'],atol=1e-7,rtol=3e-6,err_msg='isotope-dependent native phonon energy scale')
 
 
-def test_native_atom_identity_and_final_force_order(coupled):
+def test_native_atom_identity_and_final_force_order():
     """"两态原子按 ID 对应。" Final force constants use the final structure order, not the initial array order."""
-    case,expected,_=coupled;case={**case};permutation=np.array([1,0]);axes=(3*permutation[:,None]+np.arange(3)).ravel();original=case['final']
+    case=coupled_case();expected=explicit_quantum(case,10);permutation=np.array([1,0]);axes=(3*permutation[:,None]+np.arange(3)).ravel();original=case['final']
     case['final']=Structure(original.lattice,[original[i].specie for i in permutation],original.cart_coords[permutation],coords_are_cartesian=True,site_properties={'atom_id':[original.site_properties['atom_id'][i] for i in permutation]})
     case['kf']=case['kf'][np.ix_(axes,axes)];args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
     np.testing.assert_allclose(actual['kernel'],expected['kernel'],atol=5e-8,rtol=5e-6,err_msg='stable native atom ID and final Hessian correspondence')
 
 
-def test_periodic_images_and_cartesian_covariance(coupled):
+def test_periodic_images_and_cartesian_covariance():
     """"不同内部基、简并模中的基选择、整体 Cartesian 旋转或相同原子结构的周期像表示，不改变物理结果。" Nonorthogonal cells and covariant tensors describe one physical case."""
-    case,expected,_=coupled;case={**case};rot=linalg.expm(np.array([[0.,-.3,.5],[.3,0.,-.2],[-.5,.2,0.]]));full=linalg.block_diag(rot,rot)
+    case=coupled_case();expected=explicit_quantum(case,10);rot=linalg.expm(np.array([[0.,-.3,.5],[.3,0.,-.2],[-.5,.2,0.]]));full=linalg.block_diag(rot,rot)
     lattice=Lattice(np.array([[8.,0.,0.],[2.3,7.8,0.],[-.9,1.2,7.4]])@rot.T)
-    for name in ('initial','final'):
-        source=case[name];cart=source.cart_coords@rot.T
-        if name=='final':cart=cart+np.array([[2.,-1.,0.],[-1.,0.,1.]])@lattice.matrix
+    for name,images in [('initial',np.zeros((2,3))),('final',np.array([[2.,-1.,0.],[-1.,0.,1.]]))]:
+        source=case[name];cart=source.cart_coords@rot.T+images@lattice.matrix
         case[name]=Structure(lattice,[s.specie for s in source],cart,coords_are_cartesian=True,site_properties=source.site_properties)
     case['ki']=full@case['ki']@full.T;case['kf']=full@case['kf']@full.T
     case['coupling']={'constant':case['coupling']['constant'],'linear':full@case['coupling']['linear'],'quadratic':full@case['coupling']['quadratic']@full.T}
@@ -93,10 +133,9 @@ def test_periodic_images_and_cartesian_covariance(coupled):
     np.testing.assert_allclose(actual['kernel'],expected['kernel'],atol=5e-8,rtol=5e-6,err_msg='physical periodic-image and rotated-tensor covariance')
 
 
-def test_complete_native_input_response():
+def test_complete_native_input_response(physical_response):
     """"导数是完整 Phi 对该同时扰动的一阶响应，包含核动能度量、几何、两套势能面、耦合、热归一化、E 和展宽的共同变化。" Independent quantum-state perturbations exercise the whole physical chain."""
-    case=coupled_case();case['queries']=coupled_queries(case)
-    expected=np.array([finite_quantum_response(case,q,cut=10) for q in case['queries']]);args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
+    case,expected=physical_response;args,kwargs=arguments(case);actual=call('capture_kernel',*args,**kwargs)
     assert np.max(np.abs(expected[0]))>1e-5 and np.max(np.abs(expected[1]))>1e-7, 'Both physical query directions must have nontrivial responses'
     np.testing.assert_allclose(actual['kernel_response'],expected,atol=1e-6,rtol=2e-5,err_msg='joint Cartesian/force/isotope/coupling/thermal/energy/width kernel response')
 

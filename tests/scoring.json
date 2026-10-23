@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Fixed pre-calibration positive scientific behavior weights",
+  "description": "Positive scientific behavior weights",
   "weights": {
     "test_coupled_quantum_state_spectrum": 17,
     "test_mode_quanta_partition_and_zero_point": 6,

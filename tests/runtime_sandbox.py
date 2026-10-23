@@ -15,7 +15,9 @@ def _worker_identity():
     state.mkdir(mode=0o700, exist_ok=True)
     if state.is_symlink() or state.stat().st_uid != 0 or state.stat().st_mode & 0o077:
         raise RuntimeError("Unsafe worker identity state")
-    descriptor = os.open(state / "next-uid", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    descriptor = os.open(
+        state / "next-uid", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600
+    )
     with os.fdopen(descriptor, "r+") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         value = handle.read()
@@ -70,7 +72,9 @@ def prepare_root(source):
         if not device.exists():
             os.mknod(device, stat.S_IFCHR | 0o666, os.makedev(1, minor))
         metadata = device.lstat()
-        if not stat.S_ISCHR(metadata.st_mode) or metadata.st_rdev != os.makedev(1, minor):
+        if not stat.S_ISCHR(metadata.st_mode) or metadata.st_rdev != os.makedev(
+            1, minor
+        ):
             raise RuntimeError("Unexpected device in candidate filesystem")
         device.chmod(0o666 if name == "null" else 0o444)
 
@@ -82,6 +86,7 @@ import subprocess
 import sys
 import tempfile
 import json
+
 
 def _seccomp(libc):
     """Block networking, tracing, signalling and privilege escapes."""
@@ -210,21 +215,37 @@ Path('scratch-probe').write_text('ok')
 Path('scratch-probe').unlink()
 assert Path('/runner/worker.py').is_file()
 assert Path('/app/src').is_dir()
+from pymatgen.core import Lattice, Structure
+from pymatgen.analysis.defects.constants import HBAR_EV, EV2J, AMU2KG, ANGS2M
+import numpy as np
+structure=Structure(Lattice.cubic(8.),['Si','O'],[[0,0,0],[.2,.3,.4]],site_properties={'atom_id':['a','b']})
+restored=Structure.from_dict(structure.as_dict())
+distance,image=restored.lattice.get_distance_and_image(restored[0].frac_coords,restored[1].frac_coords)
+assert distance>0 and np.all(np.isfinite(image))
+assert HBAR_EV**2*EV2J/(AMU2KG*ANGS2M**2)>0
 print('filesystem=chroot; seccomp=enabled; candidate probes passed')
 """
     try:
         result = subprocess.run(
-            [sys.executable, '-I', '-c', probe],
+            [sys.executable, "-I", "-c", probe],
             preexec_fn=lambda: restrict(folder, uid),
-            cwd='/', capture_output=True, text=True, timeout=15,
-            env={'PATH': '/usr/local/bin:/usr/bin:/bin', 'LANG': 'C.UTF-8'},
+            cwd="/",
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env={
+                "PATH": "/usr/local/bin:/usr/bin:/bin",
+                "LANG": "C.UTF-8",
+                "OPENBLAS_NUM_THREADS": "1",
+                "OMP_NUM_THREADS": "1",
+            },
         )
         if result.returncode:
-            raise RuntimeError('Isolation preflight failed: ' + result.stderr[-3000:])
+            raise RuntimeError("Isolation preflight failed: " + result.stderr[-3000:])
         print(result.stdout.strip())
     finally:
         shutil.rmtree(folder)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     prepare()

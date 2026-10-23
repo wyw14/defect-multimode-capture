@@ -1,19 +1,18 @@
-# Verifier environment compatibility
+# Multimode defect transition kernel
 
-The verifier starts as root on Linux/amd64. It accepts read-only `/tests`
-and `/solution` mounts without changing their ownership or permissions.
-Candidates run in a dependency-only chroot with a distinct unprivileged UID
-and private scratch per call. Only current `/app/src` and the public native
-object adapter enter that filesystem; tests, answers and reward files do not.
-Mandatory no_new_privs and seccomp prohibit privilege recovery and networking.
-Preparation probes filesystem and network restrictions before scientific tests.
-Unavailable isolation fails closed. Landlock support is not required.
+This application extends `pymatgen-analysis-defects` 2026.10.16 with synthetic
+stable harmonic models. Source: https://github.com/materialsproject/pymatgen-analysis-defects,
+commit `71b3c7ab543c0e7833f4e6416d51a3fc626c8b26`.
+The upstream license is in `environment/src/UPSTREAM-LICENSE`.
 
-The container needs the standard Docker SYS_CHROOT, MKNOD, SETUID and SETGID
-capabilities; privileged mode is not required. Custom runtimes that remove
-these capabilities need compatible configuration. CPU, memory, time budgets,
-scientific contracts, assertions and reference implementations are unchanged.
+Implement `vibronic_kernel.capture_kernel` under `/app/src`; `instruction.md`
+defines the spectrum, native structures, derivatives and tolerances. Runtime
+and verifier dependencies are installed from pinned wheels. VASP and external
+materials databases are unnecessary.
 
-This compatibility revision was prepared without executing builds, tests,
-Oracle/NOP, audit tools or model evaluation, as requested. Earlier scores and
-trajectories remain evidence for their original commits only.
+Run with Harbor and Docker on Linux/amd64. Only `/app/src` is transferred to the
+separate verifier. The root verifier runs each candidate call under a distinct
+unprivileged UID in a dependency-only chroot, using Docker's standard
+SYS_CHROOT, MKNOD, SETUID and SETGID capabilities. Private scratch is writable;
+tests, solutions and reward files are inaccessible. Each scientific call has
+180 seconds, 2 CPU and 4 GiB.

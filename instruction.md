@@ -1,6 +1,6 @@
 # 多模缺陷跃迁谱核
 
-在 `/app/src/vibronic_kernel` 实现 `capture_kernel`。这是基于 pymatgen-analysis-defects 2026.10.16 的作者研究扩展，不是声称上游有已知缺陷或已有实验事故。原生项目提供 HarmonicDefect、配置坐标与单坐标复合计算；这里要求完整内部振动空间的量子跃迁谱核。可使用随包安装的依赖并新增包内源码，不限制合理求解方法。
+在 `/app/src/vibronic_kernel` 实现 `capture_kernel`，计算完整内部振动空间的量子跃迁谱核及输入响应。原生项目提供 HarmonicDefect、配置坐标与单坐标复合计算；本题扩展到两套完整力常数和坐标相关电子耦合。可使用已安装的依赖并新增包内源码。
 
 ## 原生几何与物理模型
 

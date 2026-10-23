@@ -5,6 +5,8 @@
     "test_outputs.py::test_mode_quanta_partition_and_zero_point[three_mode]",
     "test_outputs.py::test_coupled_quantum_state_spectrum[dense_fifteen]",
     "test_outputs.py::test_mode_quanta_partition_and_zero_point[dense_fifteen]",
+    "test_outputs.py::test_coupled_quantum_state_spectrum[fully_mixed_fifteen]",
+    "test_outputs.py::test_mode_quanta_partition_and_zero_point[fully_mixed_fifteen]",
     "test_outputs.py::test_coordinate_dependent_quadratic_coupling[three_mode]",
     "test_outputs.py::test_coordinate_dependent_quadratic_coupling[dense_fifteen]",
     "test_outputs.py::test_noncommuting_force_surfaces[three_mode]",
@@ -25,18 +27,19 @@
   ],
   "test_files_sha256": {
     "candidate.py": "f15ab6380a4a3739c39116c64290766220a6a6a931143f5de2b6a55b65b8a52c",
-    "codec.py": "de1852da589d3fd7e7014cdf0c410614cb6b323851a45dec400bf5da5e0938e1",
-    "dense_independent.py": "6aff249a24a86e59866c218a95163fdcab39bac69747617a4275aa129701b6f6",
-    "grade.py": "fd6c3da02170dd58d0f398d4c79abddeb4903c01f8e5fe1d05a78b2b0b5aa627",
-    "independent.py": "e4867b4835500bef8bfb01744886c9b6a0e3896e62de00dc0d65197a2a7a81b4",
+    "codec.py": "58db63b67d5f1413edf3f714bb57fa9690cf9189ba45bbc7efb240868a63f466",
+    "dense_independent.py": "431093e753a1dbdde1b09e1a696960e0b993128939720982189657864646f619",
+    "grade.py": "6c2e99c162377dc3eceeeda7b6726eca9378ba4c3b163d0b77e94a09780355aa",
+    "independent.py": "40d019e30c5105b7ac9331e185143f5efe65cbfbce68621eea92f89af32c084e",
     "pytest.ini": "1dac468dd93a169701c454eceadb34c9ebe60cdb8afa67a28ea85f0f0dfa5bba",
     "requirements.lock.txt": "79069740cb5d844bdda31008e227e55371d8974362e09c62cfc920cc80eab4db",
-    "score.py": "3d947f8fa9b6646fd5d79e2640740f9cbfcc6887e0a2c53d8888e992c38e1de2",
-    "scoring.json": "5b726ee525f397fedcc589fca8b7d6a7f54dfc9bfeca055dc32c872816fcdc93",
-    "test.sh": "4485fc72ae3dade7bda8d5a960c0eb26ba1f67ffeadf3cf34097232147bb4a1f",
-    "test_outputs.py": "fd9d5bedef9838b4d7e509a0437da091a2b526a84a2a3fdb2fec7838cb2c102b",
+    "score.py": "a4528dc01c3e8868a72fa8f7a64aa0e274083018fa53553bfd43fecd932373b3",
+    "scoring.json": "f7cde96a5e86ce2d73adea0e806c8d1eb93ea6cf2767df8531141e8659014501",
+    "test.sh": "780009013c033c58a489ec745a67dbc007793eec099e4ff051732f11632ec9ec",
+    "test_outputs.py": "8b4ad11941b59e1c06105e17856d0c650db55a9c1274d56e21e09b93ebe9d1ba",
     "trusted_events.py": "9edbf5afe1a10c9c393aac4cf0be1e46a886c510df88b1a7b2e2df368fb5a044",
-    "runtime_sandbox.py": "ddb70f5376597c1ef77573035041b231daf5badabf05c2483ec213864e985adc"
+    "runtime_sandbox.py": "97159cc693fe2cd38c834e559c40f48d32a4cd3f82f8773c5dd30728e59bafeb",
+    "full_state_sum.py": "e582eeed672056e3967177a38f0353987f8bca7dbf59a489ab0deb0af19b6cb1"
   },
   "wheel_files_sha256": {
     "iniconfig-2.3.1-py3-none-any.whl": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
@@ -44,6 +47,5 @@
     "pluggy-1.7.0-py3-none-any.whl": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
     "pygments-2.21.0-py3-none-any.whl": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
     "pytest-8.4.2-py3-none-any.whl": "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79"
-  },
-  "frozen_at": "2026-10-23T07:26:53.154023+00:00"
+  }
 }

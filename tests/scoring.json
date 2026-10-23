@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "description": "Fixed pre-calibration positive scientific behavior weights",
+  "weights": {
+    "test_coupled_quantum_state_spectrum": 17,
+    "test_mode_quanta_partition_and_zero_point": 6,
+    "test_coordinate_dependent_quadratic_coupling": 8,
+    "test_noncommuting_force_surfaces": 10,
+    "test_finite_temperature_up_and_down_transitions": 8,
+    "test_nonuniform_isotope_mass_metric": 7,
+    "test_native_atom_identity_and_final_force_order": 5,
+    "test_periodic_images_and_cartesian_covariance": 4,
+    "test_complete_native_input_response": 12,
+    "test_exact_degeneracy_with_mode_splitting_response": 6,
+    "test_legal_thermal_frequency_extreme": 7,
+    "test_full_fifteen_mode_quantum_kernel": 6,
+    "test_energy_order_duplicates_and_zero_query_shape": 1,
+    "test_output_schema_numeric_types_and_finiteness": 1,
+    "test_rejects_bad_shapes_nonfinite_and_unknown_fields": 1,
+    "test_rejects_native_mismatch_without_mutating_inputs": 1
+  },
+  "total_weight": 100
+}
